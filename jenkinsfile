@@ -1,0 +1,37 @@
+pipeline {
+  agent any
+  options {
+    buildDiscarder(logRotator(numToKeepStr:'5' , artifactNumToKeepStr: '5'))
+    timestamps()
+  }
+  stages {
+    stage('Validate') {
+      steps {
+        ansiColor('xterm') {
+          echo 'Check Tools Versions....'
+          script {
+            def tools = ['java', 'mvn', 'gradle', 'ansible', 'git', 'terraform', 'ruby', 'aws', 'node', 'docker', 'colima', 'groovy', 'python3', 'podman', 'pip3']
+            tools.each { tool ->
+              sh "$tool --version"
+            }
+            sh """
+              ant -version
+              helm version
+            """
+          }
+        }
+      }
+    }
+  }
+  post {
+    success {
+      echo "The build is Green."
+    }
+    failure {
+      echo "The build failed."
+    }
+    cleanup {
+      deleteDir()
+    }
+  }
+}
